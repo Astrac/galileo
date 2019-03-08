@@ -89,7 +89,13 @@ lazy val `galileo-demo` = project
   .settings(
     name := "galileo-demo",
     description := "",
+    scalaJSUseMainModuleInitializer := true,
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % "0.9.6",
+      "com.lihaoyi" %%% "scalatags" % "0.6.7",
+      "co.fs2" %%% "fs2-core" % "1.0.4"
     )
+  )
   .dependsOn(galileoJS)
 
 lazy val root = project.in(file(".")).aggregate(galileoJVM, galileoJS, `galileo-demo`)

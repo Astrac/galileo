@@ -8,6 +8,8 @@ case class Vec2(x: Double, y: Double) {
   def unit = Vec2(x / modulo, y / modulo)
   def scale(f: Double) = Vec2(x * f, y * f)
   def -(other: Vec2) = Vec2(x - other.x, y - other.y)
+  def *(other: Vec2) = Vec2(x * other.x, y * other.y)
+  def /(value: Double) = Vec2(x / value, y / value)
 }
 object Vec2 {
   implicit val monoidInstance = new Monoid[Vec2] {

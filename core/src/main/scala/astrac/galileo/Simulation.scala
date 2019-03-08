@@ -21,7 +21,10 @@ class SimulationModule[Input] {
     }
   }
 
-  case class Simulation[A, B](stepCokleisli: Cokleisli[Step, A, B])
+  case class Simulation[A, B](stepCokleisli: Cokleisli[Step, A, B]) {
+    def apply(s: Step[A]): B = stepCokleisli.run(s)
+    def apply(i: Input)(a: A): B = apply(Step(a, i))
+  }
 
   object Simulation {
     implicit val arrowInstance = new Arrow[Simulation] {
