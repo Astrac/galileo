@@ -6,11 +6,9 @@ import cats.syntax.foldable._
 import cats.syntax.profunctor._
 import cats.syntax.semigroup._
 import astrac.dimapn.syntax._
-import astrac.galileo.SimulationModule
+import astrac.galileo.dsl._
 
 object Simulations {
-  val simulationModule = new SimulationModule[Double]
-  import simulationModule.dsl._
 
   val positionSim: Simulation[Velocity, Position] =
     step(sv => Position(sv.value.vec.scale(sv.delta)))

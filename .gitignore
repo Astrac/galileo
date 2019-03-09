@@ -22,3 +22,8 @@ project/plugins/project/
 # Ensime
 .ensime
 .ensime_cache
+
+# Bloop/Metals
+.bloop
+.metals
+coursier

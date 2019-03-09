@@ -1,5 +1,6 @@
 package astrac.galileo.demo
 
+import astrac.galileo.dsl.Step
 import cats.effect.IO
 import cats.implicits._
 import fs2.Stream
@@ -90,14 +91,10 @@ object Demo {
     val tick = Stream.fixedRate(40.millis)
 
     val pendulumRedraws = Stream
-      .iterate[IO, Pendulum](pendulum)(Simulations.pendulumSim(gravity)(deltaT))
+      .iterate[IO, Pendulum](pendulum)(p =>
+        Simulations.pendulumSim(gravity)(Step(p, deltaT)))
       .evalMap(p => clear >> drawPendulum(p))
 
-    val pointRedraws = Stream
-      .iterate[IO, Point](point)(Simulations.simplePointSim(gravity)(deltaT))
-      .evalMap(p => clear >> drawPoint(p))
-
     (tick.zipRight(pendulumRedraws)).compile.drain.unsafeRunAsyncAndForget
-    // (tick.zipRight(pointRedraws)).compile.drain.unsafeRunAsyncAndForget
   }
 }
