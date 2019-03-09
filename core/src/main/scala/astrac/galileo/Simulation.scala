@@ -18,8 +18,10 @@ object Simulation {
     def lift[A, B](f: A => B): Simulation[F, A, B] =
       Simulation(s => f(s.extract))
 
-    def compose[A, B, C](f: Simulation[F, B, C],
-                         g: Simulation[F, A, B]): Simulation[F, A, C] =
+    def compose[A, B, C](
+        f: Simulation[F, B, C],
+        g: Simulation[F, A, B]
+    ): Simulation[F, A, C] =
       Simulation(f.stepCokleisli.compose(g.stepCokleisli))
 
     def first[A, B, C](f: Simulation[F, A, B]): Simulation[F, (A, C), (B, C)] =
@@ -27,11 +29,13 @@ object Simulation {
   }
 
   implicit def monoidInstance[F[_]: Comonad, A, B: Monoid]
-    : Monoid[Simulation[F, A, B]] =
+      : Monoid[Simulation[F, A, B]] =
     new Monoid[Simulation[F, A, B]] {
       def empty: Simulation[F, A, B] = Simulation(_ => Monoid[B].empty)
-      def combine(a: Simulation[F, A, B],
-                  b: Simulation[F, A, B]): Simulation[F, A, B] =
+      def combine(
+          a: Simulation[F, A, B],
+          b: Simulation[F, A, B]
+      ): Simulation[F, A, B] =
         (a &&& b).rmap(bb => bb._1 |+| bb._2)
     }
 
@@ -41,10 +45,12 @@ object Simulation {
         Simulation.focus[F, A]((_: A) => b)
       def flatMap[B, C](fb: Simulation[F, A, B])(f: B => Simulation[F, A, C]) =
         Simulation(fb.stepCokleisli.flatMap(b => f(b).stepCokleisli))
-      def tailRecM[B, C](b: B)(
-          f: B => Simulation[F, A, Either[B, C]]): Simulation[F, A, C] =
+      def tailRecM[B, C](
+          b: B
+      )(f: B => Simulation[F, A, Either[B, C]]): Simulation[F, A, C] =
         Simulation(
-          Monad[Cokleisli[F, A, ?]].tailRecM(b)(b => f(b).stepCokleisli))
+          Monad[Cokleisli[F, A, ?]].tailRecM(b)(b => f(b).stepCokleisli)
+        )
     }
 
   def apply[F[_], A, B](f: F[A] => B): Simulation[F, A, B] =
@@ -60,6 +66,7 @@ object Simulation {
   def id[F[_]: Comonad, A]: Simulation[F, A, A] = focus(identity[A])
 
   def describe[F[_]: Comonad, A](
-      f: A => Simulation[F, A, A]): Simulation[F, A, A] =
+      f: A => Simulation[F, A, A]
+  ): Simulation[F, A, A] =
     Simulation.id[F, A].flatMap(f)
 }

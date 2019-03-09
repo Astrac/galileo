@@ -1,6 +1,5 @@
 package astrac.galileo.demo
 
-import astrac.galileo.dsl.Step
 import cats.effect.IO
 import cats.implicits._
 import fs2.Stream
@@ -9,6 +8,7 @@ import js.annotation.{JSExport, JSExportTopLevel}
 import org.scalajs.dom
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import Scenes._
 
 @JSExportTopLevel("astrac.galileo.Demo")
 object Demo {
@@ -34,7 +34,8 @@ object Demo {
         margin := 10,
         h1("Galileo demo"),
         simCanvas
-      ).render)
+      ).render
+    )
 
     run()
   }
@@ -43,14 +44,13 @@ object Demo {
     .getContext("2d")
     .asInstanceOf[dom.CanvasRenderingContext2D]
 
-  val point = Point(Position(Vec2(350, 50)), Velocity(Vec2(0, 0)), 123)
-
   val pendulum = Pendulum(
-    Point(Position(Vec2(300, 50)), Velocity(Vec2(0, 0)), 123),
-    Point(Position(Vec2(350, 300)), Velocity(Vec2(0, 0)), 123),
-    Spring(300, 0.1, 3))
+    Point(Position(350, 10), Velocity(0, 0), Acceleration(0, 0), Mass(1)),
+    Point(Position(550, 10), Velocity(0, 0), Acceleration(0, 0), Mass(1)),
+    Spring(300, 50, 5)
+  )
 
-  val gravity = Acceleration(Vec2(0, 500))
+  val gravity = Force(0, 150)
 
   val deltaT = 0.025
 
@@ -65,7 +65,7 @@ object Demo {
   def drawPoint(p: Point): IO[Unit] = IO {
     graphics.beginPath()
     graphics.lineWidth = 1.0
-    graphics.arc(p.position.vec.x, p.position.vec.y, 5, 0, 2 * math.Pi)
+    graphics.arc(p.position.vector.x, p.position.vector.y, 5, 0, 2 * math.Pi)
     graphics.fillStyle = "green"
     graphics.fill()
     graphics.strokeStyle = "#666666"
@@ -76,23 +76,26 @@ object Demo {
   def drawLine(p1: Position, p2: Position): IO[Unit] = IO {
     graphics.beginPath()
     graphics.lineWidth = 1.0
-    graphics.moveTo(p1.vec.x, p1.vec.y)
-    graphics.lineTo(p2.vec.x, p2.vec.y)
+    graphics.moveTo(p1.vector.x, p1.vector.y)
+    graphics.lineTo(p2.vector.x, p2.vector.y)
     graphics.strokeStyle = "#666666"
     graphics.stroke()
     graphics.closePath()
   }
 
   def drawPendulum(p: Pendulum): IO[Unit] =
-    drawPoint(p.anchor) >> drawPoint(p.free) >> drawLine(p.anchor.position,
-                                                         p.free.position)
+    drawPoint(p.anchor) >> drawPoint(p.free) >> drawLine(
+      p.anchor.position,
+      p.free.position
+    )
 
   def run(): Unit = {
     val tick = Stream.fixedRate(40.millis)
 
+    val sim = Scenes.pendulum(gravity)
+
     val pendulumRedraws = Stream
-      .iterate[IO, Pendulum](pendulum)(p =>
-        Simulations.pendulumSim(gravity)(Step(p, deltaT)))
+      .iterate[IO, Pendulum](pendulum)(p => sim(Step(p, Time(deltaT))))
       .evalMap(p => clear >> drawPendulum(p))
 
     (tick.zipRight(pendulumRedraws)).compile.drain.unsafeRunAsyncAndForget
