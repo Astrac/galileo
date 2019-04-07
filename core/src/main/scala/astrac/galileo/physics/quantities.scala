@@ -2,19 +2,19 @@ package astrac.galileo.physics
 
 import cats.Monoid
 import io.estatico.newtype.Coercible
-import io.estatico.newtype.macros.newtype
+import io.estatico.newtype.macros.newsubtype
 import spire.algebra.{Field, InnerProductSpace}
 
 object Quantities {
-  @newtype case class Position[A](vector: Vector[A])
-  @newtype case class Velocity[A](vector: Vector[A])
-  @newtype case class Acceleration[A](vector: Vector[A])
-  @newtype case class Force[A](vector: Vector[A])
-  @newtype case class Time[A](value: A)
-  @newtype case class Mass[A](value: A)
-  @newtype case class Length[A](value: A)
-  @newtype case class Stiffness[A](value: A)
-  @newtype case class Damping[A](value: A)
+  @newsubtype case class Position[A](vector: Vector[A])
+  @newsubtype case class Velocity[A](vector: Vector[A])
+  @newsubtype case class Acceleration[A](vector: Vector[A])
+  @newsubtype case class Force[A](vector: Vector[A])
+  @newsubtype case class Time[A](value: A)
+  @newsubtype case class Mass[A](value: A)
+  @newsubtype case class Length[A](value: A)
+  @newsubtype case class Stiffness[A](value: A)
+  @newsubtype case class Damping[A](value: A)
 
   implicit def vectorSpaceMonoid[A](
       implicit vs: InnerProductSpace[A, _]
@@ -41,6 +41,23 @@ object Quantities {
       def negate(x: B): B = toB(vs.negate(toVector(x)))
       def plus(x: B, y: B): B = toB(vs.plus(toVector(x), toVector(y)))
       def timesl(r: A, v: B): B = toB(vs.timesl(r, toVector(v)))
+      def zero: B = toB(vs.zero)
+    }
+
+  implicit def coercibleVectorSpace2[A, B, C](
+      implicit toB: Coercible[Vector[C], B],
+      toVector: Coercible[B, Vector[C]],
+      toA: Coercible[C, A],
+      toC: Coercible[A, C],
+      toFieldA: Coercible[Field[C], Field[A]],
+      vs: InnerProductSpace[Vector[C], C]
+  ): InnerProductSpace[B, A] =
+    new InnerProductSpace[B, A] {
+      implicit def scalar: Field[A] = toFieldA(vs.scalar)
+      def dot(a: B, b: B): A = toA(vs.dot(toVector(a), toVector(b)))
+      def negate(x: B): B = toB(vs.negate(toVector(x)))
+      def plus(x: B, y: B): B = toB(vs.plus(toVector(x), toVector(y)))
+      def timesl(r: A, v: B): B = toB(vs.timesl(toC(r), toVector(v)))
       def zero: B = toB(vs.zero)
     }
 }

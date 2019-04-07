@@ -25,18 +25,20 @@ object Kinematics {
       val dt = time(fState).extract
       val half = Field[A].fromDouble(0.5)
 
+      coercibleVectorSpace2[Mass[A], Velocity[A], A]
+
       val velocityHalfstep = current.velocity +
-        Velocity((current.acceleration :* dt.value :* half).vector)
+        Velocity((current.acceleration :* dt :* half).vector)
 
       val newPosition =
-        current.position + Position((velocityHalfstep :* dt.value).vector)
+        current.position + Position((velocityHalfstep :* dt).vector)
 
       val newAcceleration =
         interactionPotential(newPosition, velocityHalfstep)
 
       val newVelocity =
         current.velocity + Velocity(
-          ((current.acceleration + newAcceleration) :* half :* dt.value).vector
+          ((current.acceleration + newAcceleration) :* half :* dt).vector
         )
 
       Parameters(newPosition, newVelocity, newAcceleration)
