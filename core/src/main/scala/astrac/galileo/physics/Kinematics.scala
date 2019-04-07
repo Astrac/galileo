@@ -3,7 +3,7 @@ package astrac.galileo.physics
 import cats.Comonad
 import cats.syntax.comonad._
 import astrac.galileo.Simulation
-import quantities._
+import Quantities._
 import spire.algebra.{Field, NRoot}
 import spire.syntax.vectorSpace._
 import Predef.{any2stringadd => _}

@@ -2,37 +2,13 @@ package astrac.galileo.demo
 
 import astrac.dimapn.syntax._
 import astrac.galileo.physics._
+import astrac.galileo.physics.Quantities
 import astrac.galileo.Simulation
 import cats.Comonad
 import cats.implicits._
 import spire.std.double._
 
-object Scenes {
-  type Position = quantities.Position[Double]
-  type Velocity = quantities.Velocity[Double]
-  type Acceleration = quantities.Acceleration[Double]
-  type Mass = quantities.Mass[Double]
-  type Spring = Rigid.Spring[Double]
-  type Time = quantities.Time[Double]
-
-  def Position(a: Double, b: Double) =
-    quantities.Position(Vector(a, b))
-
-  def Velocity(a: Double, b: Double) =
-    quantities.Velocity(Vector(a, b))
-
-  def Acceleration(a: Double, b: Double) =
-    quantities.Acceleration(Vector(a, b))
-
-  def Force(a: Double, b: Double) =
-    quantities.Force(Vector(a, b))
-
-  def Mass(a: Double) = quantities.Mass(a)
-  def Time(a: Double) = quantities.Time(a)
-
-  def Spring(a: Double, b: Double, c: Double) =
-    Rigid.Spring(a, b, c)
-
+object Scenes extends Quantities[Double] {
   case class Step[A](value: A, time: Time)
 
   object Step {
@@ -83,14 +59,12 @@ object Scenes {
         .dimap((p: Pendulum) => pointToNewtonian(p.free))(pointFromNewtonian)
     }
 
-  def pointConstantForce(
-      force: quantities.Force[Double]
-  ): Simulation[Step, Point, Point] =
+  def pointConstantForce(force: Force): Simulation[Step, Point, Point] =
     Newtonian
       .conservative[Step, Double](_ => force, stepTime)
       .dimap(pointToNewtonian)(pointFromNewtonian)
 
-  def pendulum(force: quantities.Force[Double]) =
+  def pendulum(force: Force) =
     (
       Simulation.focus[Step, Pendulum](_.anchor),
       pendulumSpring >>> pointConstantForce(force),

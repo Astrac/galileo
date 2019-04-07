@@ -47,7 +47,7 @@ object Demo {
   val pendulum = Pendulum(
     Point(Position(350, 10), Velocity(0, 0), Acceleration(0, 0), Mass(1)),
     Point(Position(550, 10), Velocity(0, 0), Acceleration(0, 0), Mass(1)),
-    Spring(300, 50, 5)
+    Spring(Length(300), Stiffness(50), Damping(5))
   )
 
   val gravity = Force(0, 150)

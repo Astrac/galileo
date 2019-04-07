@@ -4,12 +4,16 @@ import astrac.galileo.Simulation
 import cats.Comonad
 import cats.instances.list._
 import cats.syntax.foldable._
-import quantities._
+import Quantities._
 import spire.algebra.{Field, NRoot}
 import spire.syntax.all._
 
 object Rigid {
-  case class Spring[A](restLenght: A, stiffness: A, damping: A)
+  case class Spring[A](
+      restLenght: Length[A],
+      stiffness: Stiffness[A],
+      damping: Damping[A]
+  )
 
   def springFunction[A: Field: NRoot](
       subject: Position[A],
@@ -22,12 +26,12 @@ object Rigid {
     val pointsDistance = connection.norm
     val connectionVersor = connection.normalize
     val undampened = Force(
-      (connectionVersor :* ((-spring.stiffness) * (pointsDistance - spring.restLenght))).vector
+      (connectionVersor :* ((-spring.stiffness.value) * (pointsDistance - spring.restLenght.value))).vector
     )
 
     val dampening = Force(
       connectionVersor.vector :* (velocity.vector
-        .dot(connectionVersor.vector) * spring.damping)
+        .dot(connectionVersor.vector) * spring.damping.value)
     )
 
     undampened - dampening

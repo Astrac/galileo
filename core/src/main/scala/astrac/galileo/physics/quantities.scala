@@ -4,43 +4,17 @@ import cats.Monoid
 import io.estatico.newtype.Coercible
 import io.estatico.newtype.macros.newtype
 import spire.algebra.{Field, InnerProductSpace}
-import spire.syntax.field._
 
-case class Vector[A](x: A, y: A)
-
-object Vector {
-  private def makeVectorSpaceInstance[A](
-      aField: Field[A]
-  ): InnerProductSpace[Vector[A], A] =
-    new InnerProductSpace[Vector[A], A] {
-      implicit def scalar: Field[A] = aField
-
-      def dot(a: Vector[A], b: Vector[A]): A = (a.x * b.x) + (a.y * b.y)
-
-      def negate(x: Vector[A]): Vector[A] =
-        Vector(scalar.negate(x.x), scalar.negate(x.y))
-
-      def plus(x: Vector[A], y: Vector[A]): Vector[A] =
-        Vector(x.x + y.x, x.y + y.y)
-
-      def timesl(r: A, v: Vector[A]): Vector[A] =
-        Vector(v.x * r, v.y * r)
-
-      def zero: Vector[A] =
-        Vector(scalar.zero, scalar.zero)
-    }
-
-  implicit def vectorSpaceInstance[A: Field]: InnerProductSpace[Vector[A], A] =
-    makeVectorSpaceInstance(Field[A])
-}
-
-object quantities {
+object Quantities {
   @newtype case class Position[A](vector: Vector[A])
   @newtype case class Velocity[A](vector: Vector[A])
   @newtype case class Acceleration[A](vector: Vector[A])
   @newtype case class Force[A](vector: Vector[A])
   @newtype case class Time[A](value: A)
   @newtype case class Mass[A](value: A)
+  @newtype case class Length[A](value: A)
+  @newtype case class Stiffness[A](value: A)
+  @newtype case class Damping[A](value: A)
 
   implicit def vectorSpaceMonoid[A](
       implicit vs: InnerProductSpace[A, _]
@@ -69,4 +43,37 @@ object quantities {
       def timesl(r: A, v: B): B = toB(vs.timesl(r, toVector(v)))
       def zero: B = toB(vs.zero)
     }
+}
+
+trait Quantities[A] {
+  type Length = Quantities.Length[A]
+  def Length(a: A) = Quantities.Length(a)
+
+  type Stiffness = Quantities.Stiffness[A]
+  def Stiffness(a: A) = Quantities.Stiffness(a)
+
+  type Damping = Quantities.Damping[A]
+  def Damping(a: A) = Quantities.Damping(a)
+
+  type Position = Quantities.Position[A]
+  def Position(a: A, b: A) = Quantities.Position(Vector(a, b))
+
+  type Velocity = Quantities.Velocity[A]
+  def Velocity(a: A, b: A) = Quantities.Velocity(Vector(a, b))
+
+  type Acceleration = Quantities.Acceleration[A]
+  def Acceleration(a: A, b: A) = Quantities.Acceleration(Vector(a, b))
+
+  type Force = Quantities.Force[A]
+  def Force(a: A, b: A) = Quantities.Force(Vector(a, b))
+
+  type Mass = Quantities.Mass[A]
+  def Mass(a: A) = Quantities.Mass(a)
+
+  type Time = Quantities.Time[A]
+  def Time(a: A) = Quantities.Time(a)
+
+  type Spring = Rigid.Spring[A]
+  def Spring(l: Length, s: Stiffness, d: Damping) = Rigid.Spring(l, s, d)
+
 }
